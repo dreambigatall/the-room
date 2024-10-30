@@ -1,9 +1,10 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import styled from "styled-components";
-import deleteCabin from "../../services/apiCabines";
-import toast from "react-hot-toast";
 import { useState } from "react";
 import CreateCabinForm from "./CreateCabinForm";
+import { useDeleteCabin } from "./useDeleteCabin";
+import { HiPencil, HiSquare2Stack } from "react-icons/hi2";
+import { HiTrash } from "react-icons/hi";
+import { useCreateCabin } from "./useCreateCabin";
 
 const TableRow = styled.div`
   display: grid;
@@ -48,21 +49,20 @@ const Discount = styled.div`
 function CabinRow({ cabin }) {
   const { id, name, maxCapacity, regularPrice, discount, image } = cabin;
   const [showForm, setShowForm] = useState(false);
-   const queryClient=useQueryClient();
-  const{isLoading, mutate}=useMutation({
-    mutationFn:(id)=>deleteCabin(id),
-    onSuccess:()=>{
-      toast.success("we delete succesfully");
-      queryClient.invalidateQueries({
-        queryKey:['cabins']
-      })
-    },
-    onError:(err)=>{
-      toast.error('There was an error while deleting')
-      console.log(err)
-    }
-   
-  })
+   const {isDeleting, deleteCabinMutate}=useDeleteCabin();
+   const {isCreating,creatingCabin} = useCreateCabin();
+
+   function handelDuplicateCabin(){
+    creatingCabin({
+      name:`Copy of ${name}`,
+      maxCapacity,
+      regularPrice,
+      discount,
+      image,
+    
+      
+    })
+   }
   return(
     <>
     <TableRow role="row">
@@ -70,10 +70,11 @@ function CabinRow({ cabin }) {
        <Cabin>{name}</Cabin>
        <div>{maxCapacity}</div>
        <Price>{regularPrice}</Price>
-       <Discount>{discount}</Discount>
+       {discount ? <Discount>{discount}</Discount>: <span>&mdash;</span>}
        <div>
-        <button onClick={()=>setShowForm((show)=>!show)}>Edit</button>
-       <button onClick={()=>mutate(id)}>Delete</button>
+       <button onClick={handelDuplicateCabin}><HiSquare2Stack/></button>
+        <button onClick={()=>setShowForm((show)=>!show)}><HiPencil/></button>
+       <button onClick={()=>deleteCabinMutate(id)}><HiTrash/></button>
        </div>
        
 

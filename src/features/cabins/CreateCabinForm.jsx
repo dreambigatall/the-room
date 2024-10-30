@@ -10,6 +10,8 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {createEditCabin} from "../../services/apiCabines";
 import toast from "react-hot-toast";
 import FormRow from "../../ui/FormRow";
+import { useCreateCabin } from "./useCreateCabin";
+import { useEditingCabin } from "./useEditingCabin";
 
 
 
@@ -25,38 +27,20 @@ function CreateCabinForm({cabinToEdit = {}}) {
   });
  const {errors} = formState;
  console.log(errors);
-    const queryClient = useQueryClient();
-  const {mutate:creatingCabin, isLoading:isCreating}=useMutation({
-    mutationFn:(newCabin)=>createEditCabin(newCabin),//===mutationFn:createCabin,
-    onSuccess:()=>{
-      toast.success("New cabin successfully created");
-      queryClient.invalidateQueries({
-        queryKey:["cabins"]
-      })
-     reset();
-    },
-    onError:()=>{
-      toast.error("Cabin could not be created")},
-  })
+    const {creatingCabin, isCreating}=useCreateCabin();
 
-  const {mutate:editingCabin, isLoading:isEaditing}=useMutation({
-    mutationFn:({newCabin,id})=>createEditCabin(newCabin,id),//===mutationFn:createCabin,
-    onSuccess:()=>{
-      toast.success(" cabin successfully edited");
-      queryClient.invalidateQueries({
-        queryKey:["cabins"]
-      })
-     reset();
-    },
-    onError:()=>{
-      toast.error("Cabin could not be edited")},
-  })
+    const {editingCabin, isEaditing}=useEditingCabin();
   function onSubmit(data){
     const image = typeof data.image ==='string'?data.image:data.image[0]
-    if(isEditSession) return editingCabin({newCabin:{...data,image}, id:editId})
+    if(isEditSession) return editingCabin({newCabin:{...data,image}, id:editId},{
+      onSuccess:()=>reset(),
+    })
     creatingCabin({
       ...data,
       image:image
+    }, {
+      onSuccess:()=>reset(),
+
     });
   }
   const isWorking = isCreating || isEaditing
@@ -95,7 +79,7 @@ function CreateCabinForm({cabinToEdit = {}}) {
         })} />
       </FormRow>
 
-      <FormRow label="Description for website" error={errors?.description?.message} disabled={isWorking}>
+      <FormRow label="Description for website" error={errors?.description?.message} >
         <Textarea disabled={isWorking} type="number" id="description" defaultValue=""  {...register("description", {required:"this filed is required"})} /> 
       </FormRow>
 

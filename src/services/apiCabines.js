@@ -60,6 +60,7 @@ const{data, error} = await query.select().single();
     }
 
     //2 upload the image
+    if(hasImagePath) return data;
     const { data:storedata, error:storerror } = await supabase
     .storage
     .updateBucket('avatars', {
