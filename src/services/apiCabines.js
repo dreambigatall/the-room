@@ -15,6 +15,7 @@ return data;
 
 }
 
+
 async function deleteCabin(id){
     const {data, error} =await supabase
     .from('cabins')
