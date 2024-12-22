@@ -64,14 +64,14 @@ const{data, error} = await query.select().single();
     if(hasImagePath) return data;
     const { data:storedata, error:storerror } = await supabase
     .storage
-    .updateBucket('avatars', {
+    .updateBucket('cabin-image', {
       public: false,
       allowedMimeTypes: ['image/png'],
       fileSizeLimit: 1024
     })
 
     const {data:storageData, error:storageError}= await supabase.storage
-    .from("cabin-images")
+    .from("cabin-image")
     .upload(imageName, newCabin.image);
 
    //3 delete the cabin if there was an error uploading image

@@ -3,6 +3,9 @@ import Spinner from "../../ui/Spinner";
 import CabinRow from "./CabinRow";
 import { useCabinFethedData } from "./useCabinFethedData";
 import Table from "../../ui/Table";
+import Menus from "../../ui/Menus";
+import { useSearchParams } from "react-router-dom";
+import Empty from "../../ui/Empty";
 //import Table as TableUI from "../../ui/Table";
 //import {Table as TableUI} from "../../ui/Table";
 // const Table = styled.div`
@@ -30,12 +33,38 @@ const TableHeader = styled.header`
 `;
 
 function CabinTabel(){
-   const {isLoading, data}= useCabinFethedData();
-   console.log(data)
+   const {isLoading, data:cabins}= useCabinFethedData();
+   const [serchParams] = useSearchParams()
+  // console.log(data)
 
    if(isLoading) return <Spinner/>
+   //1 Filter
+   const filterValue = serchParams.get("discount") || "all"
+   console.log(filterValue);
 
+   let filteredCabins;
+   if(filterValue === 'all') filteredCabins = cabins;
+   if(filterValue === 'no-discount') filteredCabins=cabins.filter(cabin=>(
+    cabin.discount===0
+   ))
+
+   if(filterValue === 'with-discount') filteredCabins=cabins.filter(cabin=>(
+    cabin.discount > 0
+   ))
+  //2Sort
+    const sortBy= serchParams.get('sortBy') || 'startDate-asc'
+
+   const [filed, direction] = sortBy.split('-');
+   const modifier=direction === 'asc' ?1:-1;
+   //modifier = Number(modifier)
+   const sortedCabines=filteredCabins.sort((a,b)=>(
+    (a[filed] - b[filed]) * modifier
+   ) )
+   console.log(filed,direction)
+
+   if(!cabins.length) return <Empty resource='cabins'/>
   return (
+    <Menus>
   <Table columns="0.6fr 1.8fr 2.2fr 1fr 1fr 1fr">
     <Table.Header>
       <div></div>
@@ -45,11 +74,14 @@ function CabinTabel(){
       <div>Discount</div>
       <div></div>
       </Table.Header>
-      <Table.Body data={data}
+      <Table.Body 
+      // data={filteredCabins}
+      data={sortedCabines}
        render={(cabin) => <CabinRow key={cabin.id} cabin={cabin}/>}/>
-      {}
+      
     
   </Table>
+  </Menus>
   )
 }
 
