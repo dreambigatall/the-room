@@ -1,10 +1,45 @@
 import { getToday } from "../utils/helpers";
 import supabase from "./supabase";
+import PAGE_SIZE from "../utils/constant";
+export async function getBookings({filter, sortBy, page}){
+  let query =  supabase.from(
+    'bookings'
+  ).select('*, cabins(name), guest(fullName,email)',
+     {count:'exact'}
+  )
+  ;
+
+  //Filter
+
+  if(filter ) query =query.eq(filter.filed, filter.value)
+
+  //Sort
+  if(sortBy ) 
+    query=query.order(sortBy.filed, {ascending:sortBy.direction === 'asc'})
+
+
+  //pagination
+  if(page){
+    const from=(page-1) * PAGE_SIZE;
+    const to= from + PAGE_SIZE - 1
+    query = query.range(from, to)
+  }
+
+  const {data, error, count} = await query
+  if(error){
+    console.error(error)
+    throw new Error("Bookings could not be loaded")
+}
+
+return {data,count};
+
+}
+
 
 export async function getBooking(id) {
   const { data, error } = await supabase
     .from("bookings")
-    .select("*, cabins(*), guests(*)")
+    .select("*, cabins(*), guest(*)")
     .eq("id", id)
     .single();
 
@@ -17,10 +52,11 @@ export async function getBooking(id) {
 }
 
 // Returns all BOOKINGS that are were created after the given date. Useful to get bookings created in the last 30 days, for example.
+//date is iosstring
 export async function getBookingsAfterDate(date) {
   const { data, error } = await supabase
     .from("bookings")
-    .select("created_at, totalPrice, extrasPrice")
+    .select("created_at, totalPrice, extraPrice")
     .gte("created_at", date)
     .lte("created_at", getToday({ end: true }));
 
@@ -37,7 +73,7 @@ export async function getStaysAfterDate(date) {
   const { data, error } = await supabase
     .from("bookings")
     // .select('*')
-    .select("*, guests(fullName)")
+    .select("*, guest(fullName)")
     .gte("startDate", date)
     .lte("startDate", getToday());
 
@@ -80,6 +116,8 @@ export async function updateBooking(id, obj) {
 
   if (error) {
     console.error(error);
+    console.error("Supabase Error:", error.message);
+
     throw new Error("Booking could not be updated");
   }
   return data;

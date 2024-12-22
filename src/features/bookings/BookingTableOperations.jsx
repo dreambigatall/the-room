@@ -1,12 +1,14 @@
-import SortBy from "../../ui/SortBy";
+import SortBy from "../../ui/SortByComponent";
 import Filter from "../../ui/Filter";
 import TableOperations from "../../ui/TableOperations";
 
 function BookingTableOperations() {
   return (
     <TableOperations>
-      <Filter
-        filterField="status"
+      {/* <Filter
+      
+        filterField="status" */}
+        <Filter filterFiled='status'
         options={[
           { value: "all", label: "All" },
           { value: "checked-out", label: "Checked out" },
